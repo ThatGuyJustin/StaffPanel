@@ -1,0 +1,25 @@
+############################################
+######        Permissions              #####
+############################################
+# Global:
+#   api.login - Allows user to log into the web panel
+# LiteBans:
+#   litebans.* - All litebans permissions
+#   litebans.view.* - View all punishments, and all data associated with said punishement
+#   litebans.view.ip - View IP addresses of players.
+#   litebans.view.[ban | kick | warning | ipban | mute] - View any of the following punishment history
+#
+# CoreProtect:
+#   coreprotect.* - All coreprotect permissions
+#   coreprotect.lookup.* - Allows the user to preform all CP Lookups.
+#   coreprotect.lookup.chat - Allows for chat lookup
+#   coreprotect.lookup.commands - Allow for command lookup
+#   coreprotect.lookup.containers - Allows for chest viewing
+#   coreprotect.lookup - Allows for basic block lookup
+groups:
+  owner:
+    - '*' # All permissions
+  developer:
+    - '*'
+  default:
+    - api.login

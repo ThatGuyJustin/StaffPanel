@@ -1,0 +1,31 @@
+token:
+
+web:
+  domain: 'http://localhost:5000'
+  SECRET_KEY: 'BIG_DICK_RICK'
+  discord:
+    API_BASE_URL: https://discord.com/api
+    AUTH_URL: https://discord.com/oauth2/authorize
+    CLIENT_ID: ''
+    CLIENT_SECRET: ''
+    REDIRECT_URI: http://localhost:5000/api/auth/discord/callback
+    TOKEN_URL: https://discord.com/api/oauth2/token
+
+minecraft:
+  server_ip: localhost
+  server_port: 25565
+  rcon_port: 133742069
+
+litebans:
+  database_ip: localhost
+  port: 3306
+  username: db_user
+  password: ""
+  database_name: litebans
+
+coreprotect:
+  database_ip: localhost
+  port: 3306
+  username: db_user
+  password: ""
+  database_name: coreprotect
