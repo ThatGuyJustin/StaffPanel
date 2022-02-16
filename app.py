@@ -20,7 +20,10 @@ def hello_world():
 
 
 if __name__ == '__main__':
-    app.run()
+    with open('config.yaml', 'r') as f:
+        data = load(f, Loader=yaml.UnsafeLoader)
+
+    app.run(host=data['web_host'], port=data['web_port'], debug=True)
 
 
 @app.before_first_request
@@ -50,8 +53,6 @@ def save_auth(response):
         session['user'] = g.user.to_dict()
     elif not g.user and 'user' in session:
         del session['user']
-
-    print(session)
 
     return response
 

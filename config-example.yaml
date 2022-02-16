@@ -3,6 +3,8 @@ token:
 web:
   domain: 'http://localhost:5000'
   SECRET_KEY: 'BIG_DICK_RICK'
+  web_port: 5000
+  web_host: localhost
   discord:
     API_BASE_URL: https://discord.com/api
     AUTH_URL: https://discord.com/oauth2/authorize

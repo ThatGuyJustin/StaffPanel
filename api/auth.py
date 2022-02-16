@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from flask import Blueprint, g, current_app, session, jsonify, redirect, request
 from requests_oauthlib import OAuth2Session
 
@@ -69,9 +68,7 @@ def auth_discord_callback():
 
     g.user = user
 
-    print(g.user)
-
-    return user.to_dict()
+    return redirect("/", 302)
 
 
 @auth.route('/@me')
