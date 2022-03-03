@@ -4,7 +4,6 @@ import re
 from flask import Blueprint, g, jsonify, request
 from api.decos import authed
 from functools import reduce
-from playhouse.shortcuts import model_to_dict
 import json
 
 from models.LiteBans import Ban, Kick, Mute, History
@@ -14,12 +13,12 @@ api = Blueprint('api', __name__, url_prefix='/api')
 reeeeee_uuid = re.compile(r"\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b")
 
 
-@api.route('/test')
-@authed
-def test_endpoint():
-    test_ban = Mute.select().where((Mute.id == 15)).get()
-
-    return model_to_dict(test_ban)
+# @api.route('/test')
+# @authed
+# def test_endpoint():
+#     test_ban = Mute.select().where((Mute.id == 15)).get()
+#
+#     return model_to_dict(test_ban)
 
 
 @api.route('/stats')
@@ -37,7 +36,7 @@ def server_stats():
 
 
 CAN_FILTER = ['id', 'user_uuid', 'moderator_uuid', 'reason', 'moderator', 'user']
-CAN_SORT = ['id', 'user_uuid', 'moderator_uuid', 'created_at', 'expires_at']
+CAN_SORT = ['id', 'user_uuid', 'moderator_uuid', 'created_at', 'expires_at', 'moderator', 'user']
 
 
 def search_users(query=None):
@@ -83,7 +82,7 @@ def get_infractions():
     if page < 1:
         page = 1
 
-    limit = int(request.values.get('limit', 1000))
+    limit = int(request.values.get('limit', 20))
     if limit < 1 or limit > 1000:
         limit = 1000
 
