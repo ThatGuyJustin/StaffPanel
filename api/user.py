@@ -54,10 +54,10 @@ class User:
             if x == "*":
                 return True
 
-            if (x == "litebans.*" or "coreprotect.*") and ("litebans" in perm or "coreprotect" in perm):
+            if (x == "litebans.*" or x == "coreprotect.*") and ("litebans" in perm or "coreprotect" in perm):
                 return True
 
-            if (x == "litebans.view.*" or "coreprotect.lookup.*") and (
+            if (x == "litebans.view.*" or x == "coreprotect.lookup.*") and (
                     "litebans.view" in perm or "coreprotect.lookup" in perm):
                 return True
 

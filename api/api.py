@@ -1,7 +1,7 @@
 import operator
-from uuid import UUID
+import re
 
-from flask import Blueprint, g, current_app, session, jsonify, redirect, request
+from flask import Blueprint, g, jsonify, request
 from api.decos import authed
 from functools import reduce
 from playhouse.shortcuts import model_to_dict
@@ -10,6 +10,8 @@ import json
 from models.LiteBans import Ban, Kick, Mute, History
 
 api = Blueprint('api', __name__, url_prefix='/api')
+
+reeeeee_uuid = re.compile(r"\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b")
 
 
 @api.route('/test')
@@ -41,23 +43,41 @@ CAN_SORT = ['id', 'user_uuid', 'moderator_uuid', 'created_at', 'expires_at']
 def search_users(query=None):
     queries = []
 
-    if type(query) == UUID:
+    if reeeeee_uuid.match(query):
         queries.append((History.uuid == query))
 
     else:
         queries.append((History.name ** '%{}%'.format(query.replace('%', ''))))
 
     users = History.select().where(reduce(operator.or_, queries))
+
+    print(users.sql())
+
     if len(users) == 0:
         return []
 
     return [i.uuid for i in users[:25]]
 
 
-@api.route('/bans')
+@api.route('/infractions')
 @authed
-def get_bans():
-    user = History.alias()
+def get_infractions():
+
+    infraction = Ban.alias()
+
+    if request.values.get('type'):
+        type = request.values.get('type')
+        print(g.user.permissions)
+        if type == "ban" and g.user.has_permission("litebans.view.ban"):
+            pass
+        elif type == "mute" and g.user.has_permission("litebans.view.mute"):
+            infraction = Mute.alias()
+        elif type == "kick" and g.user.has_permission("litebans.view.kick"):
+            infraction = Kick.alias()
+        else:
+            return "Permission Denied", 200
+    elif not g.user.has_permission("litebans.view.ban"):
+        return "Permission Denied", 200
 
     page = int(request.values.get('page', 1))
     if page < 1:
@@ -67,8 +87,7 @@ def get_bans():
     if limit < 1 or limit > 1000:
         limit = 1000
 
-    q = Ban.select(Ban)
-    q = Ban.select(Ban, user).join(user, on=((Ban.uuid == user.uuid).alias('user')))
+    q = infraction.select(infraction, History).join(History, on=(infraction.uuid == History.uuid).alias('user'))
 
     queries = []
     if 'filtered' in request.values:
@@ -78,18 +97,25 @@ def get_bans():
             if f['id'] not in CAN_FILTER:
                 continue
 
+            elif f['id'] == 'id':
+                queries.append(infraction.id == int(f['value']))
             elif f['id'] == 'reason':
-                queries.append(Ban.reason ** ('%' + f['value'].lower().replace('%', '') + '%'))
+                queries.append(infraction.reason ** ('%' + f['value'].lower().replace('%', '') + '%'))
             elif f['id'] == 'user':
-                queries.append(Ban.user_id.in_(search_users(f['value'])))
+                if reeeeee_uuid.match(f['value']):
+                    queries.append(infraction.uuid ** ('%' + f['value'].replace('%', '') + '%'))
+                else:
+                    queries.append(History.name ** ('%' + f['value'].replace('%', '') + '%'))
             elif f['id'] == 'moderator':
-                queries.append(Ban.banned_by_name.in_(search_users(f['value'])))
+                if reeeeee_uuid.match(f['value']):
+                    queries.append(infraction.banned_by_uuid ** ('%' + f['value'].replace('%', '') + '%'))
+                else:
+                    queries.append(infraction.banned_by_name ** ('%' + f['value'].replace('%', '') + '%'))
             else:
-                queries.append(getattr(Ban, f['id']) == f['value'])
+                queries.append(getattr(infraction, f['id']) == f['value'])
 
     if queries:
         q = q.where(
-            (Ban) &
             reduce(operator.and_, queries)
         )
 
@@ -103,27 +129,32 @@ def get_bans():
 
             if s['desc']:
                 sorted_fields.append(
-                    getattr(Ban, s['id']).desc()
+                    getattr(infraction, s['id']).desc()
                 )
             else:
                 sorted_fields.append(
-                    getattr(Ban, s['id'])
+                    getattr(infraction, s['id'])
                 )
 
     results = {
         "pages": len(q) // limit,
-        "bans": []
+        "infractions": []
     }
     if sorted_fields:
         q = q.order_by(*sorted_fields)
     else:
-        q = q.order_by(Ban.id.desc())
+        q = q.order_by(infraction.id.desc())
 
     q = q.paginate(
         page,
         limit,
     )
 
-    results["bans"] = [jsonify(i) for i in q]
+    results["infractions"] = [i.serialize(user=i.user) for i in q]
+
+    if not g.user.has_permission("litebans.view.ip"):
+        for inf in results["infractions"]:
+            inf["ip"] = "REDACTED"
+            inf["user"]["ip"] = "REDACTED"
 
     return results, 200
